@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react'
-import { useToast } from '../context/ToastContext'
-import TextProcessor from "../AppTools/TextProcessor"
+import { useToast } from '../../context/ToastContext'
+import TextProcessor from "../../AppTools/TextProcessor"
 import * as pdfjsLib from 'pdfjs-dist'
 import mammoth from 'mammoth'
 import Tesseract from 'tesseract.js'
@@ -74,29 +74,48 @@ function FileUploader({ onTextExtracted }) {
 
   return (
     <div 
-      className={`modern-upload h-full w-full min-h-[300px] relative group overflow-hidden flex flex-col items-center justify-center ${fileName ? 'border-indigo-500/50 bg-indigo-500/5' : ''}`}
+      className={`
+        relative h-full w-full min-h-[350px] flex flex-col items-center justify-center 
+        rounded-3xl shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden
+        border-2 
+        ${fileName 
+          ? 'bg-[#0f172a] border-green-500/50 shadow-green-500/20' /* SUCCESS STATE */
+          : 'bg-white/5 border-dashed border-white/10 hover:border-indigo-400/50 hover:bg-white/10 hover:shadow-indigo-500/20' /* DEFAULT STATE */
+        }
+      `}
       onClick={() => !isProcessing && fileInputRef.current?.click()}
     >
       <input type="file" accept=".txt,.pdf,.docx,.jpg,.jpeg,.png,.webp" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} disabled={isProcessing} />
       
-      {/* BIGGER ICON CONTAINER */}
-      <div className={`w-32 h-32 rounded-3xl flex items-center justify-center text-7xl mb-6 shadow-2xl transition-all duration-300 ${fileName ? 'bg-green-500/20 text-green-400' : 'bg-indigo-500/20 text-indigo-400 group-hover:scale-110'}`}>
+      {/* 1. Background Glow Effect (Optional visual flair) */}
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+
+      {/* 2. ICON CONTAINER */}
+      <div className={`
+        relative z-10 w-28 h-28 rounded-3xl flex items-center justify-center text-6xl mb-6 shadow-xl transition-transform duration-300
+        ${fileName 
+            ? 'bg-green-500/10 text-green-400 scale-105' 
+            : 'bg-[#0f172a] border border-white/5 text-indigo-400 group-hover:scale-110 group-hover:rotate-3'
+        }
+      `}>
         {isProcessing ? <div className="animate-spin text-5xl">⏳</div> : fileName ? getFileIcon() : '📂'}
       </div>
       
-      <div className="text-center px-4">
-        <h3 className={`font-bold text-2xl mb-2 ${fileName ? 'text-green-300' : 'text-white'}`}>
-            {isProcessing ? 'Processing...' : fileName || 'Click to Upload'}
+      {/* 3. TEXT CONTENT */}
+      <div className="text-center px-6 relative z-10">
+        <h3 className={`font-bold text-2xl mb-2 tracking-tight ${fileName ? 'text-green-400' : 'text-white'}`}>
+            {isProcessing ? 'Processing File...' : fileName || 'Click to Upload'}
         </h3>
-        <p className="text-gray-400 text-base max-w-[250px] mx-auto leading-relaxed">
-           {isProcessing ? progressStatus : !fileName ? 'PDF, Word, TXT, & Images' : 'Ready to Generate'}
+        <p className="text-indigo-200/60 text-sm font-medium uppercase tracking-widest max-w-[250px] mx-auto leading-relaxed">
+           {isProcessing ? progressStatus : !fileName ? 'PDF, Word, TXT & Images' : 'File Ready'}
         </p>
       </div>
 
+      {/* 4. "Change File" Button (Only shows when file is loaded) */}
       {fileName && !isProcessing && (
-         <div className="mt-6">
-            <span className="text-sm font-bold bg-white/10 border border-white/10 px-5 py-2 rounded-full text-white hover:bg-white/20 transition-colors uppercase tracking-wider">
-              Change File
+         <div className="mt-8 relative z-10 animate-fadeIn">
+            <span className="text-xs font-bold bg-white/5 border border-white/10 px-6 py-3 rounded-xl text-white hover:bg-white/10 hover:scale-105 transition-all uppercase tracking-wider shadow-lg">
+              Replace File
             </span>
          </div>
       )}

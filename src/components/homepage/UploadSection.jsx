@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import { useFlashcards } from '../context/FlashcardContext'
+import { useFlashcards } from '../../context/FlashcardContext'
 import FileUploader from './FileUploader'
-import SavedSets from './SavedSets'
-import LoadingSpinner from './LoadingSpinner'
-import CardLimitSelector from './CardLimitSelector'
+import SavedSets from '../SavedSets'
+import LoadingSpinner from '../LoadingSpinner'
+import CardLimitSelector from '../CardLimitSelector'
 
 function UploadSection() {
   const { generateFlashcards, isStudyMode, isLoading } = useFlashcards()
@@ -29,7 +29,7 @@ function UploadSection() {
         </h2>
         <p className="text-xl text-indigo-200 max-w-3xl mx-auto leading-relaxed">
           Upload your lecture slides, documents, or paste text below. <br/>
-          Our AI will instantly generate a study deck for you.
+          This system will instantly generate a study deck for you.
         </p>
       </div>
 
@@ -44,30 +44,43 @@ function UploadSection() {
                <span className="bg-indigo-600 text-white w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold shadow-lg shadow-indigo-500/30">1</span>
                <h3 className="text-2xl font-bold text-white">Upload File</h3>
             </div>
-            <div className="flex-1 h-[450px]"> {/* Increased Height */}
+            <div className="flex-1 h-[450px]"> 
                <FileUploader onTextExtracted={(text) => setTextInput(text)} />
             </div>
           </div>
 
-          {/* Right: Paste */}
+          {/* Right: Paste Text - NOW STYLED WITH DEPTH */}
           <div className="flex flex-col h-full">
              <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">
                     <span className="bg-purple-600 text-white w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold shadow-lg shadow-purple-500/30">2</span>
                     <h3 className="text-2xl font-bold text-white">Paste Text</h3>
                 </div>
-                <span className={`text-sm font-bold px-4 py-1 rounded-full border ${textInput.length > 0 && textInput.length < 50 ? 'border-orange-500/50 text-orange-400 bg-orange-500/10' : 'border-gray-600 text-gray-400 bg-gray-800'}`}>
+                <span className={`text-sm font-bold px-4 py-1 rounded-full border transition-all duration-300 ${textInput.length > 0 && textInput.length < 50 ? 'border-orange-500/50 text-orange-400 bg-orange-500/10' : 'border-white/10 text-gray-400 bg-white/5'}`}>
                     {textInput.length} chars
                 </span>
              </div>
              
-             <textarea 
-               className="modern-input h-[450px] resize-none text-lg leading-relaxed p-6"
-               placeholder="Paste your lecture notes, article text, or documentation here..." 
-               value={textInput}
-               onChange={(e) => setTextInput(e.target.value)}
-               disabled={isLoading}
-             />
+             {/* UPDATED TEXTAREA */}
+             <div className="relative h-[450px] group">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-indigo-500/5 rounded-3xl pointer-events-none"></div>
+                
+                <textarea 
+                  className={`
+                    w-full h-full resize-none 
+                    bg-white/5 hover:bg-white/10 focus:bg-[#0f172a] 
+                    text-lg leading-relaxed text-white placeholder-gray-500
+                    p-8 rounded-3xl shadow-2xl 
+                    border-2 border-white/10 focus:border-purple-500/50
+                    outline-none transition-all duration-300
+                    custom-scrollbar
+                  `}
+                  placeholder="Paste your lecture notes, article text, or documentation here..." 
+                  value={textInput}
+                  onChange={(e) => setTextInput(e.target.value)}
+                  disabled={isLoading}
+                />
+             </div>
           </div>
         </div>
 
@@ -77,9 +90,9 @@ function UploadSection() {
             {/* Limit Selector */}
             <div className="w-full flex justify-center">
                  <CardLimitSelector 
-                    currentLimit={cardLimit} 
-                    onLimitChange={setCardLimit} 
-                  />
+                   currentLimit={cardLimit} 
+                   onLimitChange={setCardLimit} 
+                 />
             </div>
 
             {/* BIG CENTERED GENERATE BUTTON */}
@@ -88,7 +101,7 @@ function UploadSection() {
                   <LoadingSpinner message="AI is generating your deck..." size="lg" />
                 ) : (
                   <button
-                    className="btn-primary-glow w-full text-xl py-5 rounded-2xl shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40 transform hover:-translate-y-1 transition-all duration-300"
+                    className="btn-primary-glow w-full text-xl py-5 rounded-2xl shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40 transform hover:-translate-y-1 transition-all duration-300 font-bold tracking-wide"
                     onClick={handleGenerate}
                     disabled={textInput.length < 50}
                   >

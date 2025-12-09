@@ -4,7 +4,6 @@ import { ToastProvider } from './context/ToastContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import SiteHeader from './components/SiteHeader'; 
 import LoadingSpinner from './components/LoadingSpinner';
-import './App.css';
 
 // Lazy load heavy components
 const UploadSection = lazy(() => import('./components/UploadSection'));
@@ -15,11 +14,13 @@ function AppContent() {
   const [showStatsModal, setShowStatsModal] = useState(false);
 
   return (
-    <div className="App">
-      {/* UPDATE THIS LINE: Use SiteHeader */}
+    // REMOVED className="App" to prevent legacy style conflicts
+    <div className="min-h-screen bg-[#0f172a] text-white">
+      
       <SiteHeader onShowStats={() => setShowStatsModal(true)} />
       
-      <main className="container p-4">
+      {/* ADDED mt-24: Pushes content down so it's not hidden behind the fixed header */}
+      <main className="container mx-auto p-4 mt-24">
         <Suspense fallback={<div className="flex justify-center mt-10"><LoadingSpinner message="Loading..." /></div>}>
           <UploadSection />
           <StudySection />
