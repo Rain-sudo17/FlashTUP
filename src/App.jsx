@@ -2,11 +2,11 @@ import React, { useState, lazy, Suspense } from 'react';
 import { FlashcardProvider } from './context/FlashcardContext';
 import { ToastProvider } from './context/ToastContext';
 import ErrorBoundary from './components/ErrorBoundary';
-import SiteHeader from './components/SiteHeader'; 
-import LoadingSpinner from './components/LoadingSpinner';
+import SiteHeader from './components/homepage/SiteHeader'; 
+import LoadingSpinner from './components/homepage/LoadingSpinner';
 
 // Lazy load heavy components
-const UploadSection = lazy(() => import('./components/UploadSection'));
+const UploadSection = lazy(() => import('./components/homepage/UploadSection'));
 const StudySection = lazy(() => import('./components/StudySection'));
 const StatsModal = lazy(() => import('./components/StatsModal'));
 

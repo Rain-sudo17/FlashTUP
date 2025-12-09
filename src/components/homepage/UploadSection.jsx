@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import { useFlashcards } from '../../context/FlashcardContext'
 import FileUploader from './FileUploader'
-import SavedSets from '../SavedSets'
-import LoadingSpinner from '../LoadingSpinner'
-import CardLimitSelector from '../CardLimitSelector'
+import SavedSets from './SavedSets'
+import LoadingSpinner from './LoadingSpinner'
+import CardLimitSelector from './CardLimitSelector'
 
 function UploadSection() {
   const { generateFlashcards, isStudyMode, isLoading } = useFlashcards()
@@ -19,7 +19,6 @@ function UploadSection() {
   if (isStudyMode) return null
 
   return (
-    // Added pt-36 to push content way down below the fixed header
     <div className="w-full max-w-7xl mx-auto px-6 pt-36 pb-20">
       
       {/* Hero Section */}
@@ -49,7 +48,7 @@ function UploadSection() {
             </div>
           </div>
 
-          {/* Right: Paste Text - NOW STYLED WITH DEPTH */}
+          {/* Right: Paste Text */}
           <div className="flex flex-col h-full">
              <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">
@@ -61,7 +60,6 @@ function UploadSection() {
                 </span>
              </div>
              
-             {/* UPDATED TEXTAREA */}
              <div className="relative h-[450px] group">
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-indigo-500/5 rounded-3xl pointer-events-none"></div>
                 
@@ -84,7 +82,7 @@ function UploadSection() {
           </div>
         </div>
 
-        {/* Footer Actions - CENTERED GENERATE BUTTON */}
+        {/* Footer Actions */}
         <div className="border-t border-white/10 pt-10 flex flex-col items-center gap-8">
             
             {/* Limit Selector */}
@@ -101,11 +99,20 @@ function UploadSection() {
                   <LoadingSpinner message="AI is generating your deck..." size="lg" />
                 ) : (
                   <button
-                    className="btn-primary-glow w-full text-xl py-5 rounded-2xl shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40 transform hover:-translate-y-1 transition-all duration-300 font-bold tracking-wide"
+                    className={`
+                        w-full py-5 rounded-2xl text-xl font-bold tracking-wide text-white shadow-2xl
+                        transition-all duration-300 transform 
+                        flex items-center justify-center gap-3
+                        ${textInput.length < 50 
+                            ? 'bg-gray-700 opacity-50 cursor-not-allowed' 
+                            : 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 hover:scale-105 hover:shadow-indigo-500/50 cursor-pointer'
+                        }
+                    `}
                     onClick={handleGenerate}
                     disabled={textInput.length < 50}
                   >
-                    ✨ Generate Flashcards
+                    <span>✨</span>
+                    <span>Generate Flashcards</span>
                   </button>
                 )}
             </div>

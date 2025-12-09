@@ -1,6 +1,6 @@
 import React from 'react';
-import { useFlashcards } from '../context/FlashcardContext';
-import AppTools from "../AppTools/Utils";
+import { useFlashcards } from '../../context/FlashcardContext';
+import AppTools from "../../AppTools/Utils";
 
 
 function SavedSets() {
