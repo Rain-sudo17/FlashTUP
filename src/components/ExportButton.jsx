@@ -1,4 +1,4 @@
-    import React from 'react'
+import React from 'react'
 import { useFlashcards } from '../context/FlashcardContext'
 import { useToast } from '../context/ToastContext'
 
@@ -50,19 +50,24 @@ function ExportButton() {
 
   return (
     <>
+      {/* EXPORT BUTTON - Indigo Glass Theme */}
       <button 
-        className="btn btn-purple" 
+        className="px-4 py-2 bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 rounded-xl hover:bg-indigo-600 hover:text-white hover:shadow-lg hover:shadow-indigo-500/20 transition-all text-sm font-bold flex items-center gap-2"
         onClick={handleExport}
         title="Export as JSON"
       >
-        📥 Export
+        <span>📥</span>
+        <span>Export</span>
       </button>
+
+      {/* PRINT BUTTON - Cyan/Sky Glass Theme */}
       <button 
-        className="btn btn-purple" 
+        className="px-4 py-2 bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 rounded-xl hover:bg-cyan-600 hover:text-white hover:shadow-lg hover:shadow-cyan-500/20 transition-all text-sm font-bold flex items-center gap-2"
         onClick={handlePrint}
         title="Print flashcards"
       >
-        🖨️ Print
+        <span>🖨️</span>
+        <span>Print</span>
       </button>
     </>
   )

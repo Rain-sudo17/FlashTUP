@@ -16,11 +16,12 @@ function SiteHeader({ onShowStats }) {
           {/* Layout remains absolute centered */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full md:w-auto flex justify-center pointer-events-none md:pointer-events-auto">
              
-             {/* UPDATED DIV:
-                - Removed: bg-white/5, border, shadow, rounded-3xl, px-8
-                - Kept: cursor-pointer, hover:scale-105, transition
-             */}
-             <div className="flex flex-col items-center transform hover:scale-105 transition-transform duration-300 cursor-pointer pointer-events-auto">
+             {/* UPDATED: Changed from <div> to <a> to make it clickable */}
+             <a 
+               href="/" 
+               className="flex flex-col items-center transform hover:scale-105 transition-transform duration-300 cursor-pointer pointer-events-auto no-underline"
+               title="Go to Home"
+             >
                  <div className="flex items-center gap-3">
                     <span className="text-3xl animate-pulse">⚡</span>
                     <h1 className="text-3xl font-extrabold text-white tracking-tight font-heading drop-shadow-md">
@@ -30,7 +31,7 @@ function SiteHeader({ onShowStats }) {
                  <p className="text-xs text-indigo-200 font-bold tracking-[0.2em] uppercase opacity-90 mt-1">
                    Your AI Study Companion
                  </p>
-             </div>
+             </a>
              
           </div>
 
