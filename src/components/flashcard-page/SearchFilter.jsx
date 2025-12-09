@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react'
 
 function SearchFilter({ flashcards, onFilteredCards, currentIndex, setCurrentIndex }) {
   const [searchQuery, setSearchQuery] = useState('')
-  const [filterType, setFilterType] = useState('all') // all, mastered, review, remaining
+  const [filterType, setFilterType] = useState('all') 
 
   const filteredCards = useMemo(() => {
     let filtered = [...flashcards]
@@ -30,21 +30,6 @@ function SearchFilter({ flashcards, onFilteredCards, currentIndex, setCurrentInd
 
   const handleSearch = (e) => {
     setSearchQuery(e.target.value)
-    onFilteredCards(filteredCards)
-    if (currentIndex >= filteredCards.length) {
-      setCurrentIndex(0)
-    }
-  }
-
-  const handleFilterChange = (type) => {
-    setFilterType(type)
-    // We rely on the useEffect in parent or immediate update logic
-    // But since filteredCards is a memo, we might need to pass the result directly in a real implementation
-    // For this snippet, we assume parent updates via effect or we pass explicit filtered list if logic allows.
-    // Ideally, StudySection should handle the actual filtering, but based on this architecture:
-    // We just trigger a callback or let the parent know filters changed. 
-    // *Self-correction based on StudySection logic*: The parent uses `setFilteredCards`.
-    // We need to trigger `onFilteredCards` whenever `filteredCards` changes.
   }
   
   // Trigger parent update when filtered list changes
@@ -59,43 +44,52 @@ function SearchFilter({ flashcards, onFilteredCards, currentIndex, setCurrentInd
     remaining: flashcards.filter(c => !c.mastered && !c.reviewLater).length
   }), [flashcards])
 
+  const getFilterButtonClass = (type, activeColor) => {
+    const isActive = filterType === type;
+    const baseClass = "px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 border cursor-pointer";
+    
+    if (isActive) {
+        return `${baseClass} ${activeColor} text-white shadow-lg scale-105`;
+    }
+    return `${baseClass} bg-white/5 border-white/5 text-gray-400 hover:bg-white/10 hover:text-white hover:border-white/20`;
+  }
+
   return (
-    <div className="card mb-6">
-      <h3 className="text-lg font-bold text-white mb-3">🔍 Search & Filter</h3>
-      
+    <div className="w-full mb-8 animate-fadeIn">
       {/* Search Input */}
-      <div className="mb-4">
+      <div className="relative group mb-6">
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-opacity"></div>
         <input 
           type="text" 
-          className="input-field w-full"
-          placeholder="Search questions or answers..." 
+          className="relative w-full bg-[#0f172a]/80 backdrop-blur-sm border border-white/10 text-white placeholder-gray-500 rounded-2xl px-6 py-4 outline-none focus:border-indigo-500/50 focus:bg-[#0f172a] transition-all duration-300 shadow-xl"
+          placeholder="🔍 Search questions or answers..." 
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={handleSearch}
         />
       </div>
 
-      {/* Filter Buttons */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      {/* Filter Pills */}
+      <div className="flex flex-wrap gap-3 justify-center">
         <button 
-          className={`btn btn-sm ${filterType === 'all' ? 'btn-primary' : 'btn-gray'}`}
+          className={getFilterButtonClass('all', 'bg-indigo-600 border-indigo-500 shadow-indigo-500/30')}
           onClick={() => setFilterType('all')}
         >
           All ({stats.all})
         </button>
         <button 
-          className={`btn btn-sm ${filterType === 'mastered' ? 'btn-green' : 'btn-gray'}`}
+          className={getFilterButtonClass('mastered', 'bg-green-600 border-green-500 shadow-green-500/30')}
           onClick={() => setFilterType('mastered')}
         >
           ✓ Mastered ({stats.mastered})
         </button>
         <button 
-          className={`btn btn-sm ${filterType === 'review' ? 'btn-orange' : 'btn-gray'}`}
+          className={getFilterButtonClass('review', 'bg-orange-500 border-orange-400 shadow-orange-500/30')}
           onClick={() => setFilterType('review')}
         >
           ⚠ Review ({stats.review})
         </button>
         <button 
-          className={`btn btn-sm ${filterType === 'remaining' ? 'btn-purple' : 'btn-gray'}`}
+          className={getFilterButtonClass('remaining', 'bg-purple-600 border-purple-500 shadow-purple-500/30')}
           onClick={() => setFilterType('remaining')}
         >
           📝 Remaining ({stats.remaining})

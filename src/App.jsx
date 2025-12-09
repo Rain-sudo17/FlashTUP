@@ -7,7 +7,7 @@ import LoadingSpinner from './components/homepage/LoadingSpinner';
 
 // Lazy load heavy components
 const UploadSection = lazy(() => import('./components/homepage/UploadSection'));
-const StudySection = lazy(() => import('./components/StudySection'));
+const StudySection = lazy(() => import('./components/flashcard-page/StudySection'));
 const StatsModal = lazy(() => import('./components/StatsModal'));
 
 function AppContent() {
