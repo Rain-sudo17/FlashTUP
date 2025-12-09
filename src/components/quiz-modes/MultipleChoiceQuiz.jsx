@@ -1,94 +1,145 @@
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import Utils from "../../AppTools/Utils"
 
 function MultipleChoiceQuiz({ card, allCards, onAnswer }) {
   const [selectedOption, setSelectedOption] = useState(null)
-  const [showResult, setShowResult] = useState(false)
+  const [isCorrect, setIsCorrect] = useState(null)
+  const [options, setOptions] = useState([])
 
-  // Safety Check
-  if (!card || !allCards || allCards.length === 0) {
-    return <div className="text-center text-white p-10">Loading Question...</div>
-  }
+  // --- GENERATE OPTIONS (Smart Distractors) ---
+  useEffect(() => {
+    // 1. Analyze the correct answer to determine "type"
+    const correctLen = card.answer.length;
+    // We consider it "short" if it's likely a term or keyword (< 50 chars)
+    const isShortAnswer = correctLen < 50; 
 
-  const options = useMemo(() => {
-    const correctAnswer = card.answer
+    // 2. Filter potential wrong answers to match the "vibe"
+    let potentialDistractors = allCards.filter(c => {
+        // Exclude self
+        if (c.id === card.id) return false;
+
+        // Smart Filtering:
+        // If correct answer is a short term, ONLY show other short terms as options.
+        // If correct answer is a long definition, ONLY show other long definitions.
+        if (isShortAnswer) {
+            return c.answer.length < 60; // Keep it somewhat similar
+        } else {
+            return c.answer.length >= 40; // Don't show 1-word answers for a definition question
+        }
+    });
+
+    // 3. Fallback: If we filtered too aggressively and ran out of cards, 
+    // broaden the search to avoid crashing or having empty options.
+    if (potentialDistractors.length < 3) {
+         potentialDistractors = allCards.filter(c => c.id !== card.id);
+    }
+
+    // 4. Shuffle and pick 3 distinct wrong answers
+    const distinctWrongAnswers = new Set()
+    const shuffledOthers = Utils.shuffleArray([...potentialDistractors])
     
-    // Get wrong answers (filter out current card)
-    const otherCards = allCards.filter(c => c.id !== card.id)
-    
-    // Shuffle and pick 3 wrong answers
-    const wrongAnswers = Utils.shuffleArray(otherCards)
-      .slice(0, 3)
-      .map(c => c.answer) // Map to just the answer string
+    for (const c of shuffledOthers) {
+      if (distinctWrongAnswers.size >= 3) break;
       
-    // Combine and shuffle
-    const allOptions = Utils.shuffleArray([correctAnswer, ...wrongAnswers])
+      // Ensure the wrong answer isn't identical to the correct answer (text-wise)
+      const cleanWrong = c.answer.trim().toLowerCase();
+      const cleanCorrect = card.answer.trim().toLowerCase();
+      
+      if (cleanWrong !== cleanCorrect) {
+        distinctWrongAnswers.add(c.answer)
+      }
+    }
+
+    // 5. Combine with correct answer
+    const choiceList = [
+      { text: card.answer, isCorrect: true },
+      ...Array.from(distinctWrongAnswers).map(ans => ({ text: ans, isCorrect: false }))
+    ]
+
+    // 6. Shuffle the final options
+    setOptions(Utils.shuffleArray(choiceList))
     
-    return allOptions.map((option, index) => ({
-      id: index,
-      text: option,
-      isCorrect: option === correctAnswer
-    }))
+    // Reset state for new card
+    setSelectedOption(null)
+    setIsCorrect(null)
   }, [card, allCards])
 
-  // Reset state on new card
-  useEffect(() => {
-    setSelectedOption(null)
-    setShowResult(false)
-  }, [card])
-
-  const handleOptionSelect = (option) => {
-    if (showResult) return
-    setSelectedOption(option)
-    setShowResult(true)
+  const handleSelect = (option) => {
+    if (selectedOption) return // Prevent changing answer
     
-    // Delay before moving to next question
+    setSelectedOption(option)
+    const correct = option.isCorrect
+    setIsCorrect(correct)
+
+    // Wait 1.5s before moving to next question
     setTimeout(() => {
-      onAnswer(option.isCorrect, option.text)
+      onAnswer(correct, option.text)
     }, 1500)
   }
 
   return (
-    <div className="dashboard-card max-w-3xl mx-auto p-8">
-      <div className="mb-8 border-b border-white/10 pb-6">
-        <span className="text-indigo-400 font-bold uppercase text-xs tracking-wider">Multiple Choice</span>
-        <h3 className="text-2xl font-bold text-white mt-2 leading-relaxed">{card.question}</h3>
+    <div className="w-full max-w-3xl mx-auto animate-fadeIn">
+      
+      {/* Question Card */}
+      <div className="bg-[#0f172a] border border-white/10 rounded-3xl p-8 mb-8 shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+        
+        <span className="inline-block px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 font-bold uppercase text-xs tracking-wider mb-4 relative z-10">
+            Multiple Choice
+        </span>
+        
+        <h3 className="text-2xl md:text-3xl font-bold text-white leading-relaxed font-heading relative z-10">
+          {card.question}
+        </h3>
       </div>
 
-      <div className="grid gap-4">
-        {options.map((option) => {
-          const isSelected = selectedOption?.id === option.id
+      {/* Options Grid */}
+      <div className="grid grid-cols-1 gap-4">
+        {options.map((option, index) => {
+          let optionClass = "bg-[#0f172a] border-white/10 hover:bg-white/5 hover:border-white/30 text-gray-300"
           
-          let btnClass = "w-full text-left p-4 rounded-xl border transition-all duration-200 flex items-center gap-3 "
-          
-          if (showResult) {
+          if (selectedOption) {
             if (option.isCorrect) {
-              btnClass += "bg-green-500/20 border-green-500 text-green-100" // Correct style
-            } else if (isSelected && !option.isCorrect) {
-              btnClass += "bg-red-500/20 border-red-500 text-red-100" // Wrong style
+               optionClass = "bg-green-500/10 border-green-500 text-green-100 shadow-[0_0_15px_rgba(34,197,94,0.4)]"
+            } else if (selectedOption === option && !option.isCorrect) {
+               optionClass = "bg-red-500/10 border-red-500 text-red-100 opacity-80"
             } else {
-              btnClass += "bg-white/5 border-transparent opacity-50" // Unselected
+               optionClass = "bg-[#0f172a] border-white/5 text-gray-600 opacity-50"
             }
-          } else {
-            // Normal State
-            btnClass += isSelected 
-              ? "bg-indigo-600 border-indigo-500 text-white" 
-              : "bg-white/5 border-white/10 hover:bg-white/10 text-gray-200"
           }
 
           return (
             <button
-              key={option.id}
-              className={btnClass}
-              onClick={() => handleOptionSelect(option)}
-              disabled={showResult}
+              key={index}
+              onClick={() => handleSelect(option)}
+              disabled={selectedOption !== null}
+              className={`
+                relative w-full p-6 rounded-2xl border-2 text-left transition-all duration-300 group
+                flex items-center gap-4
+                ${optionClass}
+                ${!selectedOption ? 'hover:scale-[1.01] hover:shadow-lg' : ''}
+              `}
             >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border ${showResult && option.isCorrect ? 'border-green-400 bg-green-400 text-black' : 'border-white/20'}`}>
-                {String.fromCharCode(65 + option.id)}
+              <div className={`
+                w-10 h-10 shrink-0 rounded-full flex items-center justify-center font-bold text-sm border transition-colors
+                ${selectedOption && option.isCorrect 
+                    ? 'bg-green-500 text-white border-green-500' 
+                    : selectedOption === option && !option.isCorrect 
+                        ? 'bg-red-500 text-white border-red-500'
+                        : 'bg-white/5 border-white/10 text-gray-400 group-hover:border-white/30 group-hover:text-white'
+                }
+              `}>
+                {String.fromCharCode(65 + index)}
               </div>
-              <span className="flex-1">{option.text}</span>
-              {showResult && option.isCorrect && <span>✅</span>}
-              {showResult && isSelected && !option.isCorrect && <span>❌</span>}
+
+              <span className="text-lg font-medium flex-1">{option.text}</span>
+
+              {selectedOption && option.isCorrect && (
+                  <span className="text-2xl animate-bounce">✅</span>
+              )}
+              {selectedOption === option && !option.isCorrect && (
+                  <span className="text-2xl animate-shake">❌</span>
+              )}
             </button>
           )
         })}

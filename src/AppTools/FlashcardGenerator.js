@@ -52,12 +52,16 @@ class FlashcardGenerator {
     return this.flashcards.sort(() => Math.random() - 0.5)
   }
 
+  // Helper to strip "noise" characters like bullets and quotes
+  cleanTextArtifacts(text) {
+    return text
+      .replace(/["“”•]/g, "") // Remove quotes and bullets
+      .replace(/^[\s\-\.]+|[\s\-\.]+$/g, "") // Remove leading/trailing hyphens or dots
+      .trim();
+  }
+
   // Strategy 1: Definitions
   extractDefinitions() {
-    // Regex Logic:
-    // 1. Term: 2-50 chars, can be capitalized or not (relaxed)
-    // 2. Connector: is, are, refers to, defined as, means
-    // 3. Definition: Capture until end of sentence
     const patterns = [
       /(?:^|\.\s+)([A-Z][a-zA-Z\s-]{2,50}?)\s+(?:is|are|means|refers to|can be defined as)\s+([^.!?]{10,250})/g,
       /(?:^|\.\s+)([A-Z][a-zA-Z\s-]{2,50}?):\s*([^.!?]{10,250})/g
@@ -65,18 +69,16 @@ class FlashcardGenerator {
 
     patterns.forEach(pattern => {
       let match
-      // Reset regex index
       pattern.lastIndex = 0
       
       while ((match = pattern.exec(this.text)) !== null) {
-        const term = match[1].trim()
-        const def = match[2].trim()
+        let term = this.cleanTextArtifacts(match[1]);
+        let def = this.cleanTextArtifacts(match[2]);
         
-        // Filter out false positives (e.g. "There is...")
         const invalidTerms = ['There', 'It', 'This', 'That', 'Here']
         if (!invalidTerms.includes(term)) {
             this.addCard({
-              question: `What is the definition of "${term}"?`,
+              question: term, // Removed "What is the definition of..." wrapper
               answer: def,
               source: 'definition'
             })
@@ -94,21 +96,23 @@ class FlashcardGenerator {
       if (sentence.length < 20 || sentence.length > 200) return
 
       for (const keyword of keywords) {
-        // Ensure keyword is long enough to be significant
         if (keyword.length < 4) continue
 
-        // Use word boundary \b to avoid replacing partial words (e.g. "act" in "action")
         const regex = new RegExp(`\\b${keyword}\\b`, 'i')
         
         if (regex.test(sentence)) {
-            const question = sentence.replace(regex, '__________')
+            // 1. Clean the sentence first (remove bullets/quotes)
+            let cleanSentence = this.cleanTextArtifacts(sentence);
+
+            // 2. Create the blank
+            const question = cleanSentence.replace(regex, '__________')
             
+            // 3. Add Card (Removed "Complete the sentence" wrapper)
             this.addCard({
-                question: `Complete the sentence:\n"${question}"`,
+                question: question,
                 answer: keyword,
                 source: 'cloze'
             })
-            // Only make one card per sentence to avoid spam
             break 
         }
       }
@@ -117,7 +121,6 @@ class FlashcardGenerator {
 
   // Strategy 3: Reverse Definition
   createConceptChecks() {
-    // Similar to definitions but asks for the term
     const patterns = [
       /(?:^|\.\s+)([A-Z][a-zA-Z\s-]{2,50}?)\s+(?:is|are|means)\s+([^.!?]{10,250})/g
     ]
@@ -126,13 +129,13 @@ class FlashcardGenerator {
       let match
       pattern.lastIndex = 0
       while ((match = pattern.exec(this.text)) !== null) {
-        const term = match[1].trim()
-        const def = match[2].trim()
+        let term = this.cleanTextArtifacts(match[1]);
+        let def = this.cleanTextArtifacts(match[2]);
         const invalidTerms = ['There', 'It', 'This', 'That', 'Here', 'The']
 
         if (!invalidTerms.includes(term) && def.length > 20) {
             this.addCard({
-                question: `Which term describes this concept?\n"${def}..."`,
+                question: def, // Removed "Which term describes..." wrapper
                 answer: term,
                 source: 'reverse'
             })
@@ -144,13 +147,15 @@ class FlashcardGenerator {
   // Strategy 4: Chunking (Fallback)
   chunkParagraphs() {
     const sentences = this.sentences
-    // Group every 2 sentences
     for(let i = 0; i < sentences.length - 1; i += 2) {
-      const chunk = `${sentences[i]} ${sentences[i+1]}`
+      // Clean up the chunk text
+      const rawChunk = `${sentences[i]} ${sentences[i+1]}`;
+      const chunk = this.cleanTextArtifacts(rawChunk);
+
       if (chunk.length < 30) continue
       
       this.addCard({
-        question: `Explain the concepts discussed in this excerpt:\n"${sentences[i].substring(0, 60)}..."`,
+        question: sentences[i].substring(0, 60) + "...", // Removed "Explain concepts..." wrapper
         answer: chunk,
         source: 'chunk'
       })
