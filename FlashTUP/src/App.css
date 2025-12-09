@@ -1,0 +1,178 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-heading: 'Outfit', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --bg-dark: #0f172a;
+  --card-bg: rgba(30, 41, 59, 0.7);
+  --primary: #6366f1;
+}
+
+body {
+  background-color: var(--bg-dark);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%);
+  background-attachment: fixed;
+  font-family: var(--font-body);
+  color: #f1f5f9;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 { font-family: var(--font-heading); }
+
+/* === MAIN DASHBOARD CARD === */
+.dashboard-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.5rem;
+  padding: 3rem; /* Increased padding for breathing room */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+}
+
+.dashboard-card:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+/* === BUTTON STYLES === */
+.btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  font-weight: 600;
+  border-radius: 1rem;
+  transition: all 0.2s ease;
+  font-family: var(--font-heading);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* Primary "Glow" Button (Generate/Next) */
+.btn-primary-glow {
+  composes: btn-base;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+.btn-primary-glow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
+  filter: brightness(1.1);
+}
+.btn-primary-glow:disabled { opacity: 0.5; filter: grayscale(1); cursor: not-allowed; transform: none; }
+
+/* Secondary Actions (Purple, Gray, etc.) */
+.btn-purple { composes: btn-base; padding: 0.875rem 1.5rem; background: #8b5cf6; color: white; border: 1px solid rgba(255,255,255,0.1); }
+.btn-purple:hover { background: #7c3aed; transform: translateY(-2px); }
+
+.btn-gray { 
+  composes: btn-base;
+  padding: 0.875rem 1.5rem;
+  background: rgba(51, 65, 85, 0.6); 
+  color: #e2e8f0; 
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.btn-gray:hover { background: rgba(71, 85, 105, 0.9); color: white; transform: translateY(-2px); }
+
+.btn-green { composes: btn-base; padding: 0.875rem 1.5rem; background: #10b981; color: white; border: 1px solid rgba(255,255,255,0.1); }
+.btn-green:hover { background: #059669; transform: translateY(-2px); }
+
+.btn-orange { composes: btn-base; padding: 0.875rem 1.5rem; background: #f59e0b; color: white; border: 1px solid rgba(255,255,255,0.1); }
+.btn-orange:hover { background: #d97706; transform: translateY(-2px); }
+
+/* === INPUTS === */
+.modern-input {
+  background: rgba(15, 23, 42, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  color: white;
+  font-size: 1.1rem;
+  transition: all 0.2s;
+  font-family: 'Inter', monospace;
+  width: 100%;
+}
+.modern-input:focus {
+  outline: none;
+  background: rgba(15, 23, 42, 0.8);
+  border-color: #6366f1;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+}
+
+/* === UPLOAD AREA === */
+.modern-upload {
+  background: rgba(51, 65, 85, 0.15);
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.modern-upload:hover {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: #6366f1;
+  transform: translateY(-2px);
+}
+
+/* === FLASHCARDS === */
+.flashcard {
+  background: linear-gradient(145deg, #1e293b, #0f172a);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 1.5rem;
+  padding: 3rem;
+  min-height: 450px;
+  display: flex; 
+  flex-direction: column; 
+  justify-content: center; 
+  align-items: center;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+  backface-visibility: hidden;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+}
+.flip-card-back .flashcard {
+  background: linear-gradient(145deg, #312e81, #1e1b4b);
+  border-color: #6366f1;
+}
+
+/* 3D Flip Essentials */
+.flip-card { perspective: 1500px; width: 100%; height: 100%; }
+.flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+.flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+.flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; }
+.flip-card-back { transform: rotateY(180deg); }
+
+/* Animation Utils */
+@keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.animate-slideIn { animation: slideIn 0.3s ease-out forwards; }
+@keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+.animate-shake { animation: shake 0.4s ease-in-out; }
+
+/* === MATCHMAKING QUIZ LAYOUT === */
+.matchmaking-game-container {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    padding: 2rem;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
