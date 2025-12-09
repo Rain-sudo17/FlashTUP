@@ -5,19 +5,20 @@ class TextProcessor {
   static clean(text) {
     if (!text) return ''
 
-    // Remove excessive whitespace but preserve structure
-    text = text.replace(/[ \t]+/g, ' ') // Spaces and tabs
-    text = text.replace(/\n{3,}/g, '\n\n') // Max 2 newlines
+    // Remove excessive whitespace
+    text = text.replace(/[ \t]+/g, ' ')
+    text = text.replace(/\n{3,}/g, '\n\n')
     
-    // Remove special control characters
+    // Remove control characters
     text = text.replace(/[\x00-\x1F\x7F-\x9F]/g, '')
     
-    // Fix encoding issues
+    // Comprehensive encoding fixes
     const encodingFixes = {
       'â€™': "'", 'â€œ': '"', 'â€': '"',
       'â€"': '—', 'â€"': '–', 'â€¢': '•',
       'Ã©': 'é', 'Ã¡': 'á', 'Ã­': 'í',
-      'Ã³': 'ó', 'Ãº': 'ú', 'Ã±': 'ñ'
+      'Ã³': 'ó', 'Ãº': 'ú', 'Ã±': 'ñ',
+      'â€¦': '...'
     }
     
     Object.entries(encodingFixes).forEach(([bad, good]) => {
@@ -25,39 +26,35 @@ class TextProcessor {
     })
     
     // Normalize quotes
-    text = text.replace(/['']/g, "'")
-    text = text.replace(/[""]/g, '"')
+    text = text.replace(/['']/g, "'").replace(/[""]/g, '"')
     
     return text.trim()
   }
 
   /**
-   * Split text into sentences
+   * Split text into sentences (Improved robustness)
    */
   static splitSentences(text) {
     if (!text) return []
 
-    // More flexible splitting
-    const sentences = text
+    // Protect common abbreviations before splitting
+    const protectedText = text.replace(/(Dr|Mr|Mrs|Ms|Prof|Sr|Jr|vs|e\.g|i\.e|Fig)\./g, '$1_DOT_')
+
+    const sentences = protectedText
       .split(/(?<=[.!?])\s+|\n+/)
-      .map(s => s.trim())
+      .map(s => s.replace(/_DOT_/g, '.').trim()) // Restore dots
       .filter(s => {
-        // More lenient requirements
-        if (s.length < 10) return false
-        if (!/[a-zA-Z]/.test(s)) return false
-        
-        const wordCount = s.split(/\s+/).length
-        if (wordCount < 2) return false
-        
+        if (s.length < 10) return false // Too short
+        if (!/[a-zA-Z]/.test(s)) return false // No letters
+        if (s.split(/\s+/).length < 3) return false // Too few words
         return true
       })
 
-    console.log(`📝 Split into ${sentences.length} valid sentences`)
     return sentences
   }
 
   /**
-   * Extract keywords
+   * Extract keywords (Expanded Stoplist)
    */
   static extractKeywords(text, minFrequency = 1, limit = 30) {
     if (!text) return []
@@ -65,10 +62,14 @@ class TextProcessor {
     const commonWords = new Set([
       'the', 'is', 'are', 'was', 'were', 'in', 'on', 'at', 'to', 'for', 
       'of', 'and', 'or', 'but', 'with', 'from', 'by', 'this', 'that',
-      'these', 'those', 'will', 'can', 'could', 'would'
+      'these', 'those', 'will', 'can', 'could', 'would', 'should',
+      'have', 'has', 'had', 'been', 'about', 'which', 'when', 'what',
+      'where', 'who', 'how', 'why', 'there', 'their', 'they', 'them',
+      'does', 'did', 'not', 'also', 'than', 'then', 'just', 'only',
+      'very', 'much', 'many', 'some', 'any', 'into', 'over', 'under'
     ])
     
-    // Extract words (3+ characters, more lenient)
+    // Extract words (3+ chars)
     const words = text.toLowerCase().match(/\b[a-z]{3,}\b/g) || []
     
     const frequency = {}
@@ -78,53 +79,11 @@ class TextProcessor {
       }
     })
 
-    const keywords = Object.entries(frequency)
+    return Object.entries(frequency)
       .filter(([word, count]) => count >= minFrequency)
-      .sort((a, b) => b[1] - a[1])
+      .sort((a, b) => b[1] - a[1]) // Sort by frequency
       .slice(0, limit)
       .map(([word]) => this.capitalize(word))
-
-    console.log(`🔑 Extracted ${keywords.length} keywords`)
-    return keywords
-  }
-
-  /**
-   * Extract important phrases
-   */
-  static extractPhrases(text, limit = 10) {
-    if (!text) return []
-
-    const sentences = this.splitSentences(text)
-    const phrases = new Set()
-
-    sentences.forEach(sentence => {
-      const words = sentence.split(/\s+/)
-      
-      // Extract 2-word phrases (Capitalized)
-      for (let i = 0; i < words.length - 1; i++) {
-        const phrase = `${words[i]} ${words[i + 1]}`
-        if (phrase.length > 8 && /^[A-Z]/.test(phrase)) {
-          phrases.add(phrase)
-        }
-      }
-    })
-
-    const result = Array.from(phrases).slice(0, limit)
-    console.log(`💬 Extracted ${result.length} phrases`)
-    return result
-  }
-
-  static extractListItems(text) {
-    if (!text) return []
-    const bulletPattern = /^[\s]*[•\-\*\d+\.]\s+(.+)$/gm
-    const matches = []
-    let match
-    while ((match = bulletPattern.exec(text)) !== null) {
-      const item = match[1].trim()
-      if (item.length > 10) matches.push(item)
-    }
-    console.log(`📋 Extracted ${matches.length} list items`)
-    return matches
   }
 
   static capitalize(str) {

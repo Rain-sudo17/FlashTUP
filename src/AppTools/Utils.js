@@ -79,5 +79,4 @@ class Utils {
   }
 }
 
-// THIS LINE IS CRITICAL
 export default Utils;
