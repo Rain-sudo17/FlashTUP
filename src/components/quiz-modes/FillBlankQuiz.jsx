@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import Utils from "../AppTools/Utils"
+import Utils from "../../AppTools/Utils"
 
 function FillBlankQuiz({ card, onAnswer }) {
   const [userInput, setUserInput] = useState('')

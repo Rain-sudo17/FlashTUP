@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 // FIXED: This path now correctly points to the components folder
-import Flashcard from "../components/Flashcard"; 
+import Flashcard from "../../components/Flashcard"; 
 
 function FlashcardQuiz({ card, onAnswer }) {
   const [hasFlipped, setHasFlipped] = useState(false);

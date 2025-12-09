@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react'
-import Utils from "../AppTools/Utils" // Ensure this path is correct
+import Utils from "../../AppTools/Utils"
 
 function MultipleChoiceQuiz({ card, allCards, onAnswer }) {
   const [selectedOption, setSelectedOption] = useState(null)

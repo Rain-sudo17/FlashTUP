@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import StorageManager from '../utils/StorageManager';
-import FlashcardGenerator from '../utils/FlashcardGenerator';
+import StorageManager from '../AppTools/StorageManager';
+import FlashcardGenerator from '../AppTools/FlashcardGenerator';
 import { useToast } from './ToastContext';
 
 const FlashcardContext = createContext();

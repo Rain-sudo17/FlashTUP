@@ -1,10 +1,10 @@
 import React, { useState, useMemo, useCallback } from 'react';
 
 // FIXED: All imports now start with "../" to point to the separate folder
-import MultipleChoiceQuiz from "../quiz-modes/MultipleChoiceQuiz";
-import FillBlankQuiz from "../quiz-modes/FillBlankQuiz";
-import MatchingQuiz from "../quiz-modes/MatchingQuiz";
-import FlashcardQuiz from "../quiz-modes/FlashCardQuiz";
+import MultipleChoiceQuiz from "./quiz-modes/MultipleChoiceQuiz";
+import FillBlankQuiz from "./quiz-modes/FillBlankQuiz";
+import MatchingQuiz from "./quiz-modes/MatchingQuiz";
+import FlashcardQuiz from "./quiz-modes/FlashCardQuiz";
 
 function QuizMode({ flashcards, mode, onExit, onComplete }) {
   const [currentIndex, setCurrentIndex] = useState(0);
