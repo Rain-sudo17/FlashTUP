@@ -40,7 +40,7 @@ function SiteHeader({ onShowStats }) {
             
             <button 
               className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold transition-all hover:-translate-y-1 shadow-lg group cursor-pointer"
-              onClick={onShowStats}
+              onClick={ onShowStats }
             >
               <span className="text-xl group-hover:scale-110 transition-transform">📊</span>
               <span>Stats</span>

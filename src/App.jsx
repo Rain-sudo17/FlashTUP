@@ -20,7 +20,7 @@ function AppContent() {
       <SiteHeader onShowStats={() => setShowStatsModal(true)} />
       
       {/* ADDED mt-24: Pushes content down so it's not hidden behind the fixed header */}
-      <main className="container mx-auto p-4 mt-24">
+      <main className="container mx-auto p-4 mt-1">
         <Suspense fallback={<div className="flex justify-center mt-10"><LoadingSpinner message="Loading..." /></div>}>
           <UploadSection />
           <StudySection />

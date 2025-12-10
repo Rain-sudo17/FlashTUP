@@ -19,7 +19,7 @@ function UploadSection() {
   if (isStudyMode) return null
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 pt-36 pb-20">
+    <div className="w-full max-w-7xl mx-auto px-6 pt-4 pb-20">
       
       {/* Hero Section */}
       <div className="text-center mb-16">

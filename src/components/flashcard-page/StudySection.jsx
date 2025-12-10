@@ -19,9 +19,11 @@ function StudySection() {
     resetStudy
   } = useFlashcards()
 
-  const [filteredCards, setFilteredCards] = useState(flashcards || [])
+  // --- STATE ---
   const [currentIndex, setCurrentIndex] = useState(0)
-  
+  const [activeFilter, setActiveFilter] = useState('all') 
+  const [searchQuery, setSearchQuery] = useState('')
+
   // UI States
   const [editMode, setEditMode] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
@@ -31,22 +33,47 @@ function StudySection() {
   const [selectedQuizMode, setSelectedQuizMode] = useState(null)
   const [quizResults, setQuizResults] = useState(null)
 
-  useEffect(() => {
-    if (flashcards && flashcards.length > 0) {
-      setFilteredCards(flashcards)
-      if (currentIndex >= flashcards.length) setCurrentIndex(0)
+  // --- FILTERING LOGIC ---
+  const filteredCards = useMemo(() => {
+    if (!flashcards) return [];
+    
+    let result = [...flashcards];
+
+    if (activeFilter === 'mastered') {
+        result = result.filter(c => c.mastered);
+    } else if (activeFilter === 'review') {
+        result = result.filter(c => c.reviewLater);
+    } else if (activeFilter === 'remaining') {
+        result = result.filter(c => !c.mastered && !c.reviewLater);
     }
-  }, [flashcards])
 
-  const displayCards = useMemo(() => {
-    if (!filteredCards || filteredCards.length === 0) return []
-    if (useSpacedRepetition) return SpacedRepetition.sortByPriority(filteredCards)
-    return filteredCards
-  }, [filteredCards, useSpacedRepetition])
+    if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        result = result.filter(c => 
+            c.question.toLowerCase().includes(query) ||
+            c.answer.toLowerCase().includes(query)
+        );
+    }
 
-  const currentCard = displayCards[currentIndex]
+    if (useSpacedRepetition) {
+        return SpacedRepetition.sortByPriority(result);
+    }
 
-  // Stats Logic
+    return result;
+  }, [flashcards, activeFilter, searchQuery, useSpacedRepetition]);
+
+  const handleFilterChange = (newFilter) => {
+    setActiveFilter(newFilter);
+    setCurrentIndex(0);
+  };
+
+  const handleSearchChange = (query) => {
+    setSearchQuery(query);
+    setCurrentIndex(0);
+  };
+
+  const currentCard = filteredCards[currentIndex];
+
   const stats = useMemo(() => {
     if (!flashcards) return { total: 0, mastered: 0, review: 0, percentComplete: 0 }
     const total = flashcards.length
@@ -60,8 +87,8 @@ function StudySection() {
   }, [flashcards])
 
   const nextCard = useCallback(() => {
-    if (currentIndex < displayCards.length - 1) setCurrentIndex(p => p + 1)
-  }, [currentIndex, displayCards.length])
+    if (currentIndex < filteredCards.length - 1) setCurrentIndex(p => p + 1)
+  }, [currentIndex, filteredCards.length])
 
   const previousCard = useCallback(() => {
     if (currentIndex > 0) setCurrentIndex(p => p - 1)
@@ -74,24 +101,28 @@ function StudySection() {
     setShowConfetti(true)
     setTimeout(() => {
         setShowConfetti(false)
-        if (currentIndex < displayCards.length - 1) nextCard()
+        if (currentIndex < filteredCards.length - 1) nextCard()
     }, 600)
-  }, [currentCard, flashcards, currentIndex, displayCards.length])
+  }, [currentCard, flashcards, currentIndex, filteredCards.length])
 
   const markForReview = useCallback(() => {
     if (!currentCard) return
     const index = flashcards.findIndex(c => c.question === currentCard.question)
     updateCard(index, { reviewLater: true, mastered: false })
     setTimeout(() => {
-        if (currentIndex < displayCards.length - 1) nextCard()
+        if (currentIndex < filteredCards.length - 1) nextCard()
     }, 300)
-  }, [currentCard, flashcards, currentIndex, displayCards.length])
+  }, [currentCard, flashcards, currentIndex, filteredCards.length])
 
   const unmarkCard = useCallback(() => {
      if (!currentCard) return
     const index = flashcards.findIndex(c => c.question === currentCard.question)
     updateCard(index, { mastered: false, reviewLater: false })
   }, [currentCard, flashcards])
+
+  const handleSave = useCallback(() => {
+      saveCurrentSet();
+  }, [saveCurrentSet]);
 
   const handleBack = useCallback(() => {
     if (flashcards.some(c => c.mastered || c.reviewLater)) {
@@ -108,7 +139,6 @@ function StudySection() {
     enabled: !editMode && viewMode === 'study'
   })
 
-  // Completion Check
   useEffect(() => {
     if (stats.total > 0 && stats.remaining === 0 && viewMode === 'study' && !showCompletion) {
       setShowCompletion(true)
@@ -121,17 +151,27 @@ function StudySection() {
   if (!currentCard) {
       return (
          <div className="max-w-4xl mx-auto pt-40 px-6">
-            <SearchFilter flashcards={flashcards} onFilteredCards={setFilteredCards} currentIndex={currentIndex} setCurrentIndex={setCurrentIndex} />
+            <SearchFilter 
+                flashcards={flashcards} 
+                currentFilter={activeFilter}
+                onFilterChange={handleFilterChange}
+                searchQuery={searchQuery}
+                onSearchChange={handleSearchChange}
+            />
             <div className="bg-white/5 border border-white/10 rounded-3xl p-12 text-center mt-6">
                 <h3 className="text-2xl font-bold text-white mb-2">No Matches Found</h3>
                 <p className="text-gray-400 mb-6">Try adjusting your filters or search terms.</p>
-                <button className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20" onClick={() => setFilteredCards(flashcards)}>Reset Filters</button>
+                <button 
+                    className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20" 
+                    onClick={() => { handleFilterChange('all'); handleSearchChange(''); }}
+                >
+                    Reset Filters
+                </button>
             </div>
          </div>
       )
   }
 
-  // Quiz Views
   if (viewMode === 'quiz') return <QuizMode flashcards={flashcards} mode={selectedQuizMode} onExit={() => setViewMode('study')} onComplete={(res) => { setQuizResults(res); setViewMode('quiz-results'); }} />
   if (viewMode === 'quiz-results') return ( <div className="max-w-xl mx-auto mt-40 text-center"><h2 className="text-4xl font-bold text-white mb-4">Quiz Complete!</h2><p className="text-3xl text-indigo-300 mb-8 font-bold">{quizResults?.percentage}% Score</p><button className="px-8 py-3 bg-indigo-600 rounded-xl text-white font-bold" onClick={() => setViewMode('study')}>Back to Study</button></div> )
   if (viewMode === 'quiz-select') return ( <div className="max-w-4xl mx-auto mt-40"><QuizModeSelector onStartQuiz={(mode) => { setSelectedQuizMode(mode); setViewMode('quiz'); }} /><button className="w-full mt-4 py-3 text-gray-400 hover:text-white" onClick={() => setViewMode('study')}>Cancel</button></div> )
@@ -139,22 +179,18 @@ function StudySection() {
   return (
     <div className="w-full max-w-7xl mx-auto pb-20 pt-32 px-6">
       
-      {/* === TOP BAR (Unified Glass Panel) === */}
+      {/* HEADER BAR */}
       <div className="bg-[#0f172a]/80 backdrop-blur-md border border-white/10 rounded-3xl p-4 mb-8 flex flex-col xl:flex-row items-center justify-between gap-6 shadow-2xl relative z-30">
-        
-        {/* LEFT: Set Info */}
         <div className="flex items-center gap-4 w-full xl:w-auto">
              <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-2xl shadow-lg shadow-indigo-500/20">📚</div>
              <div>
                 <h2 className="text-xl font-bold text-white font-heading truncate max-w-[200px]">{currentSetName}</h2>
                 <div className="flex items-center gap-2 text-sm text-indigo-200">
-                    <span className="bg-white/10 px-2 py-0.5 rounded text-white font-bold">{currentIndex + 1} / {displayCards.length}</span>
+                    <span className="bg-white/10 px-2 py-0.5 rounded text-white font-bold">{currentIndex + 1} / {filteredCards.length}</span>
                     <span>Cards</span>
                 </div>
              </div>
         </div>
-        
-        {/* CENTER: Stats & Progress */}
         <div className="flex-1 w-full xl:max-w-2xl px-4">
              <div className="flex justify-between text-xs font-bold text-gray-400 mb-2 uppercase tracking-wide">
                  <span>Progress</span>
@@ -170,12 +206,19 @@ function StudySection() {
                  <span className="text-gray-500">{stats.remaining} Left</span>
              </div>
         </div>
-
-        {/* RIGHT: Actions */}
         <div className="flex items-center gap-2 w-full xl:w-auto justify-center">
             <ExportButton />
             <KeyboardHelp />
             <div className="h-8 w-px bg-white/10 mx-2"></div>
+            
+            {/* NEW: Save Button */}
+            <button 
+                className="px-4 py-2 bg-green-500/10 text-green-300 border border-green-500/20 rounded-xl hover:bg-green-600 hover:text-white transition-all text-sm font-bold flex items-center gap-2"
+                onClick={handleSave}
+            >
+                <span>💾</span> <span className="hidden md:inline">Save</span>
+            </button>
+
             <button className="px-4 py-2 bg-purple-600/20 text-purple-300 border border-purple-500/30 rounded-xl hover:bg-purple-600 hover:text-white transition-all text-sm font-bold" onClick={() => setViewMode('quiz-select')}>
                 🎮 Quiz
             </button>
@@ -186,7 +229,14 @@ function StudySection() {
       </div>
 
       <div className="max-w-5xl mx-auto">
-          <SearchFilter flashcards={flashcards} onFilteredCards={setFilteredCards} currentIndex={currentIndex} setCurrentIndex={setCurrentIndex} />
+          {/* SEARCH & FILTERS */}
+          <SearchFilter 
+            flashcards={flashcards} 
+            currentFilter={activeFilter}
+            onFilterChange={handleFilterChange}
+            searchQuery={searchQuery}
+            onSearchChange={handleSearchChange}
+          />
 
           {useSpacedRepetition && (
             <div className="mb-6 bg-purple-500/10 border border-purple-500/20 text-purple-200 text-sm p-3 rounded-xl text-center animate-fadeIn">
@@ -194,11 +244,9 @@ function StudySection() {
             </div>
           )}
 
-          {/* FLASHCARD AREA */}
           <div className="relative flex flex-col items-center justify-center mb-8">
              {showConfetti && <ConfettiEffect />}
              
-             {/* The Card Component */}
              <Flashcard 
                 card={currentCard}
                 editMode={editMode}
@@ -206,7 +254,6 @@ function StudySection() {
                 onCancelEdit={() => setEditMode(false)}
              />
 
-             {/* Edit Button (Floating) */}
              <button 
                 onClick={() => setEditMode(true)}
                 className="mt-6 text-gray-500 hover:text-white text-sm flex items-center gap-2 transition-colors"
@@ -215,10 +262,8 @@ function StudySection() {
              </button>
           </div>
 
-          {/* BOTTOM CONTROLS (Big Glass Buttons) */}
           {!useSpacedRepetition && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-             {/* Previous */}
              <button 
                 className="col-span-1 h-16 rounded-2xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
                 onClick={previousCard} disabled={currentIndex === 0}
@@ -226,7 +271,6 @@ function StudySection() {
                 <span>←</span> <span className="hidden md:inline">Prev</span>
              </button>
 
-             {/* Status Buttons */}
              {currentCard.mastered || currentCard.reviewLater ? (
                  <button className="col-span-2 h-16 rounded-2xl bg-gray-700/50 border border-gray-600 text-gray-300 font-bold hover:bg-gray-700 transition-all" onClick={unmarkCard}>
                     ↩ Undo Status
@@ -250,10 +294,9 @@ function StudySection() {
                  </>
              )}
 
-             {/* Next */}
              <button 
                 className="col-span-1 h-16 rounded-2xl bg-indigo-600 border border-indigo-500 text-white font-bold hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
-                onClick={nextCard} disabled={currentIndex === displayCards.length - 1}
+                onClick={nextCard} disabled={currentIndex === filteredCards.length - 1}
              >
                 <span className="hidden md:inline">Next</span> <span>→</span>
              </button>
